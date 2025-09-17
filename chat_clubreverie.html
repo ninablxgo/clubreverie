@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat VJ</title>
+</head>
+<body style="font-family:sans-serif;text-align:center;padding:2rem">
+  <h2>💬 Envoie un message au mur</h2>
+  <input type="text" id="nick" placeholder="Ton pseudo" /><br/><br/>
+  <textarea id="msg" rows="4" cols="30" placeholder="Ton message..."></textarea><br/><br/>
+  <button onclick="send()">Envoyer</button>
+  <p id="status"></p>
+
+  <script>
+    function send() {
+      const nick = document.getElementById('nick').value || 'anon';
+      const text = document.getElementById('msg').value;
+      if (!text) return;
+
+      fetch('https://6d8a696f10d5.ngrok-free.app/td_forward', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nick, text})
+      })
+      .then(() => {
+        document.getElementById('msg').value = '';
+        document.getElementById('status').innerText = "✅ Envoyé !";
+      })
+      .catch(() => {
+        document.getElementById('status').innerText = "❌ Erreur d'envoi";
+      });
+    }
+  </script>
+</body>
+</html>
