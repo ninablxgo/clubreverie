@@ -77,7 +77,7 @@
 
   <script>
     let nick = prompt("🌸 Ton pseudo ?") || "anon";
-    const socket = new WebSocket("wss://hack.chat/chat");
+    const socket = new WebSocket("wss://hack.chat/chat-ws");
 
     socket.onopen = () => {
       socket.send(JSON.stringify({
