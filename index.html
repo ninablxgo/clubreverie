@@ -1,44 +1,99 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>💬 Club Chat</title>
+  <meta charset="UTF-8">
+  <title>Club Chat</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input, textarea, button {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin: 10px 0;
+      width: 300px;
+      background: #222;
+      color: #fff;
+    }
+    button {
+      cursor: pointer;
+      background: #5c33ff;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background: #7648ff;
+    }
+    .status {
+      margin-top: 10px;
+    }
+  </style>
 </head>
-<body style="font-family:sans-serif;text-align:center;padding:2rem;background-color:#111;color:#eee">
+<body>
   <h2>💬 Envoie un message au mur</h2>
-  <input id="nick" type="text" placeholder="Ton pseudo" style="padding:0.5rem;font-size:1rem;" /><br><br>
-  <textarea id="msg" rows="4" cols="30" placeholder="Ton message..." style="padding:0.5rem;font-size:1rem;"></textarea><br><br>
-  <button onclick="send()" style="padding:0.7rem 1.5rem;font-size:1rem;">Envoyer</button>
-  <p id="status" style="margin-top:1rem;"></p>
+
+  <input type="text" id="nick" placeholder="Ton pseudo"><br>
+  <textarea id="text" placeholder="Ton message..." rows="4"></textarea><br>
+  <button onclick="sendMessage()">Envoyer</button>
+
+  <div class="status" id="status">⏳ Connexion au serveur...</div>
 
   <script>
-    const socket = new WebSocket("wss://hack.chat/chat-ws");
+    const channel = "clubreverie";
+    let socket;
 
-    socket.onopen = () => {
-      socket.send(JSON.stringify({
-        cmd: "join",
-        channel: "club-reverie",
-        nick: "Client-" + Math.floor(Math.random()*1000)
-      }));
-      document.getElementById("status").innerText = "✅ Connecté";
-    };
+    function connect() {
+      socket = new WebSocket("wss://hack.chat/chat-ws");
 
-    function send() {
-      const nick = document.getElementById("nick").value || "anon";
-      const text = document.getElementById("msg").value;
-      if (!text) return;
+      socket.onopen = () => {
+        document.getElementById("status").innerText = "✅ Connecté au canal #" + channel;
 
-      socket.send(JSON.stringify({
-        cmd: "chat",
-        nick,
-        text
-      }));
+        const joinMessage = {
+          cmd: "join",
+          channel: channel,
+          nick: "SiteClient" + Math.floor(Math.random() * 1000)
+        };
 
-      document.getElementById("msg").value = "";
-      document.getElementById("status").innerText = "✅ Envoyé !";
+        socket.send(JSON.stringify(joinMessage));
+      };
+
+      socket.onclose = () => {
+        document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
+        setTimeout(connect, 2000); // Tentative de reconnexion
+      };
+
+      socket.onerror = () => {
+        document.getElementById("status").innerText = "❌ Erreur WebSocket";
+      };
     }
+
+    function sendMessage() {
+      const nick = document.getElementById("nick").value.trim();
+      const text = document.getElementById("text").value.trim();
+
+      if (!nick || !text) {
+        alert("Remplis ton pseudo et ton message !");
+        return;
+      }
+
+      const message = {
+        cmd: "chat",
+        nick: nick,
+        text: text
+      };
+
+      socket.send(JSON.stringify(message));
+      document.getElementById("text").value = "";
+    }
+
+    // Connexion au lancement
+    connect();
   </script>
 </body>
 </html>
+
 
