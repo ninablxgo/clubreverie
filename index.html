@@ -75,54 +75,63 @@
 
   <div class="status" id="status">⏳ Connexion au serveur...</div>
 
-  <script>
-    const channel = "clubreverie";
-    let socket;
+<script>
+  const channel = "clubreverie";
+  let socket;
+  let joined = false;
 
-    function connect() {
+  function sendMessage() {
+    const nick = document.getElementById("nick").value.trim();
+    const text = document.getElementById("text").value.trim();
+
+    if (!nick || !text) {
+      alert("Remplis ton pseudo et ton message !");
+      return;
+    }
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
       socket = new WebSocket("wss://hack.chat/chat-ws");
 
       socket.onopen = () => {
         document.getElementById("status").innerText = "✅ Connecté à #" + channel;
-        // Pas de join avec pseudo ici — juste rejoindre le canal
-        socket.send(JSON.stringify({
+        const joinMessage = {
           cmd: "join",
           channel: channel,
-          nick: "anon"
-        }));
-      };
+          nick: nick
+        };
+        socket.send(JSON.stringify(joinMessage));
 
-      socket.onclose = () => {
-        document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
-        setTimeout(connect, 2000);
+        // Maintenant qu'on a rejoint avec le bon pseudo, on peut envoyer le message
+        const message = {
+          cmd: "chat",
+          nick: nick,
+          text: text
+        };
+        socket.send(JSON.stringify(message));
+        document.getElementById("text").value = "";
+        joined = true;
       };
 
       socket.onerror = () => {
         document.getElementById("status").innerText = "❌ Erreur WebSocket";
       };
-    }
 
-    function sendMessage() {
-      const nick = document.getElementById("nick").value.trim();
-      const text = document.getElementById("text").value.trim();
-
-      if (!nick || !text) {
-        alert("Remplis ton pseudo et ton message !");
-        return;
-      }
-
+      socket.onclose = () => {
+        document.getElementById("status").innerText = "🔌 Déconnecté, recharge la page";
+        joined = false;
+      };
+    } else {
       const message = {
         cmd: "chat",
         nick: nick,
         text: text
       };
-
       socket.send(JSON.stringify(message));
       document.getElementById("text").value = "";
     }
+  }
+</script>
 
-    connect();
-  </script>
 
 </body>
 </html>
