@@ -1,146 +1,67 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Club Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background: #ffe8f2;
-      font-family: 'Quicksand', sans-serif;
-      color: #3d1c4d;
-      margin: 0;
-      padding: 4vh 2vw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+<script>
+  const channel = "clubreverie";
+  let socket;
+  let currentNick = "";
+
+  // Pré-remplir le pseudo si déjà sauvegardé
+  window.onload = () => {
+    const savedNick = localStorage.getItem("nickname");
+    if (savedNick) {
+      document.getElementById("nick").value = savedNick;
     }
+  };
 
-    h2 {
-      margin-bottom: 2vh;
-      font-size: 6vw;
-    }
+  function connect(nick) {
+    socket = new WebSocket("wss://hack.chat/chat-ws");
+    currentNick = nick;
 
-    input, textarea, button {
-      width: 90vw;
-      max-width: 400px;
-      padding: 12px;
-      margin: 1vh 0;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
+    socket.onopen = () => {
+      document.getElementById("status").innerText = "✅ Connecté à #" + channel;
 
-    input, textarea {
-      background: #fff0f7;
-      color: #3d1c4d;
-    }
-
-    textarea {
-      resize: none;
-      height: 20vh;
-    }
-
-    button {
-      background: #ff69b4;
-      color: white;
-      font-weight: bold;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background: #ff85c1;
-    }
-
-    .status {
-      margin-top: 2vh;
-      font-size: 0.9rem;
-      color: #80427e;
-    }
-  </style>
-</head>
-<body>
-
-  <h2>Club Chat 💬</h2>
-
-  <input type="text" id="nick" placeholder="Ton pseudo" oninput="saveNick()" />
-  <textarea id="text" placeholder="Ton message..."></textarea>
-  <button onclick="sendMessage()">Envoyer</button>
-
-  <div class="status" id="status">⏳ Connexion au serveur...</div>
-
-  <script>
-    const channel = "clubreverie";
-    let socket;
-
-    // Fonction pour sauvegarder le pseudo dans localStorage
-    function saveNick() {
-      const nick = document.getElementById("nick").value.trim();
-      if (nick) {
-        localStorage.setItem("savedNick", nick);
-      }
-    }
-
-    // Connexion WebSocket
-    function connect() {
-      socket = new WebSocket("wss://hack.chat/chat-ws");
-
-      socket.onopen = () => {
-        document.getElementById("status").innerText = "✅ Connecté à #" + channel;
-
-        // Récupère pseudo sauvegardé ou génère un pseudo temporaire
-        const storedNick = localStorage.getItem("savedNick") || "Anon";
-        document.getElementById("nick").value = storedNick;
-
-        const joinMessage = {
-          cmd: "join",
-          channel: channel,
-          nick: storedNick
-        };
-
-        socket.send(JSON.stringify(joinMessage));
+      const joinMessage = {
+        cmd: "join",
+        channel: channel,
+        nick: currentNick
       };
+      socket.send(JSON.stringify(joinMessage));
+    };
 
-      socket.onclose = () => {
-        document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
-        setTimeout(connect, 2000); // Tentative de reconnexion
-      };
+    socket.onclose = () => {
+      document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
+      setTimeout(() => connect(currentNick), 2000);
+    };
 
-      socket.onerror = () => {
-        document.getElementById("status").innerText = "❌ Erreur WebSocket";
-      };
+    socket.onerror = () => {
+      document.getElementById("status").innerText = "❌ Erreur WebSocket";
+    };
+  }
+
+  function sendMessage() {
+    const nickInput = document.getElementById("nick").value.trim();
+    const text = document.getElementById("text").value.trim();
+
+    if (!nickInput || !text) {
+      alert("Remplis ton pseudo et ton message !");
+      return;
     }
 
-    // Envoi de message
-    function sendMessage() {
-      const nick = document.getElementById("nick").value.trim();
-      const text = document.getElementById("text").value.trim();
+    // Sauvegarde le pseudo localement
+    localStorage.setItem("nickname", nickInput);
 
-      if (!nick || !text) {
-        alert("Remplis ton pseudo et ton message !");
-        return;
-      }
-
-      const message = {
-        cmd: "chat",
-        nick: nick,
-        text: text
-      };
-
-      socket.send(JSON.stringify(message));
+    // Si la socket n’est pas encore connectée
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      connect(nickInput);
+      setTimeout(() => {
+        socket.send(JSON.stringify({ cmd: "chat", nick: nickInput, text: text }));
+        document.getElementById("text").value = "";
+      }, 500);
+    } else {
+      socket.send(JSON.stringify({ cmd: "chat", nick: nickInput, text: text }));
       document.getElementById("text").value = "";
     }
+  }
+</script>
 
-    // Lance la connexion dès le chargement
-    connect();
-  </script>
-
-</body>
-</html>
 
 
 
