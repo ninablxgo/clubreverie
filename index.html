@@ -90,18 +90,24 @@
     function connect() {
       socket = new WebSocket("wss://hack.chat/chat-ws");
 
-      socket.onopen = () => {
-        document.getElementById("status").innerText = "✅ Connecté à #" + channel;
-        const nick = document.getElementById("nick").value || "Anon" + Math.floor(Math.random() * 1000);
-
-        const joinMessage = {
-          cmd: "join",
-          channel: channel,
-          nick: nick
-        };
-
-        socket.send(JSON.stringify(joinMessage));
+    socket.onopen = () => {
+    document.getElementById("status").innerText = "✅ Connecté à #" + channel;
+  
+    // Attendre que le DOM soit bien prêt avant d’envoyer le join
+    setTimeout(() => {
+      const nickInput = document.getElementById("nick").value.trim();
+      const nick = nickInput || "Anon" + Math.floor(Math.random() * 1000);
+  
+      const joinMessage = {
+        cmd: "join",
+        channel: channel,
+        nick: nick
       };
+
+    socket.send(JSON.stringify(joinMessage));
+  }, 100); // petit délai pour s’assurer que localStorage a bien injecté le pseudo
+};
+
 
       socket.onclose = () => {
         document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
