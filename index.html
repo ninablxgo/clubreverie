@@ -11,13 +11,11 @@
       font-family: 'Quicksand', sans-serif;
       color: #3d1c4d;
       margin: 0;
-      padding: 0;
+      padding: 4vh 2vw;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
-      padding: 4vh 2vw;
     }
 
     h2 {
@@ -69,7 +67,7 @@
 
   <h2>Club Chat 💬</h2>
 
-  <input type="text" id="nick" placeholder="Ton pseudo" />
+  <input type="text" id="nick" placeholder="Ton pseudo" oninput="saveNick()" />
   <textarea id="text" placeholder="Ton message..."></textarea>
   <button onclick="sendMessage()">Envoyer</button>
 
@@ -79,22 +77,37 @@
     const channel = "clubreverie";
     let socket;
 
+    // Fonction pour sauvegarder le pseudo dans localStorage
+    function saveNick() {
+      const nick = document.getElementById("nick").value.trim();
+      if (nick) {
+        localStorage.setItem("savedNick", nick);
+      }
+    }
+
+    // Connexion WebSocket
     function connect() {
       socket = new WebSocket("wss://hack.chat/chat-ws");
 
       socket.onopen = () => {
         document.getElementById("status").innerText = "✅ Connecté à #" + channel;
+
+        // Récupère pseudo sauvegardé ou génère un pseudo temporaire
+        const storedNick = localStorage.getItem("savedNick") || "Anon";
+        document.getElementById("nick").value = storedNick;
+
         const joinMessage = {
           cmd: "join",
           channel: channel,
-          nick: "SiteClient" + Math.floor(Math.random() * 1000)
+          nick: storedNick
         };
+
         socket.send(JSON.stringify(joinMessage));
       };
 
       socket.onclose = () => {
         document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
-        setTimeout(connect, 2000);
+        setTimeout(connect, 2000); // Tentative de reconnexion
       };
 
       socket.onerror = () => {
@@ -102,27 +115,33 @@
       };
     }
 
+    // Envoi de message
     function sendMessage() {
       const nick = document.getElementById("nick").value.trim();
       const text = document.getElementById("text").value.trim();
+
       if (!nick || !text) {
         alert("Remplis ton pseudo et ton message !");
         return;
       }
+
       const message = {
         cmd: "chat",
         nick: nick,
         text: text
       };
+
       socket.send(JSON.stringify(message));
       document.getElementById("text").value = "";
     }
 
+    // Lance la connexion dès le chargement
     connect();
   </script>
 
 </body>
 </html>
+
 
 
 
