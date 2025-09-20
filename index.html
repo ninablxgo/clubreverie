@@ -78,36 +78,19 @@
   <script>
     const channel = "clubreverie";
     let socket;
-    let savedNick = localStorage.getItem("club_nick") || "";
-
-    // Remplir le champ si pseudo déjà stocké
-    if (savedNick) {
-      document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("nick").value = savedNick;
-      });
-    }
 
     function connect() {
       socket = new WebSocket("wss://hack.chat/chat-ws");
 
-    socket.onopen = () => {
-    document.getElementById("status").innerText = "✅ Connecté à #" + channel;
-  
-    // Attendre que le DOM soit bien prêt avant d’envoyer le join
-    setTimeout(() => {
-      const nickInput = document.getElementById("nick").value.trim();
-      const nick = nickInput || "Anon" + Math.floor(Math.random() * 1000);
-  
-      const joinMessage = {
-        cmd: "join",
-        channel: channel,
-        nick: nick
+      socket.onopen = () => {
+        document.getElementById("status").innerText = "✅ Connecté à #" + channel;
+        // Pas de join avec pseudo ici — juste rejoindre le canal
+        socket.send(JSON.stringify({
+          cmd: "join",
+          channel: channel,
+          nick: "anon"
+        }));
       };
-
-    socket.send(JSON.stringify(joinMessage));
-  }, 100); // petit délai pour s’assurer que localStorage a bien injecté le pseudo
-};
-
 
       socket.onclose = () => {
         document.getElementById("status").innerText = "🔌 Déconnecté, reconnexion...";
@@ -128,9 +111,6 @@
         return;
       }
 
-      // Enregistrer le pseudo dans le localStorage
-      localStorage.setItem("club_nick", nick);
-
       const message = {
         cmd: "chat",
         nick: nick,
@@ -141,12 +121,12 @@
       document.getElementById("text").value = "";
     }
 
-    // Démarre la connexion dès le chargement
     connect();
   </script>
 
 </body>
 </html>
+
 
 
 
