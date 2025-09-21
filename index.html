@@ -108,8 +108,11 @@
   }
 
   function sendMessage() {
-    document.getElementById("nick").value = document.getElementById("nick").value.replace(/\s+/g, '_');
-    const rawNick = document.getElementById("nick").value.trim();
+    // Correction ici : transforme les espaces en tirets AVANT lecture du champ
+    const nickInput = document.getElementById("nick");
+    nickInput.value = nickInput.value.replace(/\s+/g, '_');
+
+    const rawNick = nickInput.value.trim();
     const text = document.getElementById("text").value.trim();
 
     if (!rawNick || !text) {
@@ -132,12 +135,11 @@
     }
   }
 
-  // On ne se connecte que lorsqu'on envoie le 1er message
+  // Mise à jour en temps réel du champ pseudo (visuel uniquement)
   document.getElementById("nick").addEventListener("input", function () {
-    this.value = this.value.replace(/\s+/g, '-');
+    this.value = this.value.replace(/\s+/g, '_');
   });
 </script>
-
 
 </body>
 </html>
