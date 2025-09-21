@@ -132,7 +132,11 @@
   }
 
   // On ne se connecte que lorsqu'on envoie le 1er message
+  document.getElementById("nick").addEventListener("input", function () {
+    this.value = this.value.replace(/\s+/g, '-');
+  });
 </script>
+
 
 </body>
 </html>
