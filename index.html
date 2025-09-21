@@ -108,6 +108,7 @@
   }
 
   function sendMessage() {
+    document.getElementById("nick").value = document.getElementById("nick").value.replace(/\s+/g, '_');
     const rawNick = document.getElementById("nick").value.trim();
     const text = document.getElementById("text").value.trim();
 
