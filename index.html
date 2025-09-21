@@ -80,33 +80,52 @@
   let socket;
   let joined = false;
 
-function sendMessage() {
-  const rawNick = document.getElementById("nick").value.trim();
-  const nick = rawNick
-    .normalize("NFD")                // supprime les accents
-    .replace(/[\u0300-\u036f]/g, "") 
-    .replace(/\s+/g, '-')            // remplace les espaces par des tirets
-    .replace(/[^a-zA-Z0-9-_]/g, ''); // supprime les caractères spéciaux
+  function sendMessage() {
+    const rawNick = document.getElementById("nick").value.trim();
+    const nick = rawNick
+      .normalize("NFD")                // Supprime les accents
+      .replace(/[\u0300-\u036f]/g, "") 
+      .replace(/\s+/g, '-')            // Remplace les espaces par des tirets
+      .replace(/[^a-zA-Z0-9-_]/g, ''); // Supprime les caractères spéciaux
 
-  const text = document.getElementById("text").value.trim(); // ← AJOUTE CECI
+    const text = document.getElementById("text").value.trim(); // ← Ligne manquante
 
-  if (!nick || !text) {
-    alert("Remplis ton pseudo et ton message !");
-    return;
-  }
+    if (!nick || !text) {
+      alert("Remplis ton pseudo et ton message !");
+      return;
+    }
 
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    socket = new WebSocket("wss://hack.chat/chat-ws");
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      socket = new WebSocket("wss://hack.chat/chat-ws");
 
-    socket.onopen = () => {
-      document.getElementById("status").innerText = "✅ Connecté à #" + channel;
-      const joinMessage = {
-        cmd: "join",
-        channel: channel,
-        nick: nick
+      socket.onopen = () => {
+        document.getElementById("status").innerText = "✅ Connecté à #" + channel;
+        const joinMessage = {
+          cmd: "join",
+          channel: channel,
+          nick: nick
+        };
+        socket.send(JSON.stringify(joinMessage));
+
+        const message = {
+          cmd: "chat",
+          nick: nick,
+          text: text
+        };
+        socket.send(JSON.stringify(message));
+        document.getElementById("text").value = "";
+        joined = true;
       };
-      socket.send(JSON.stringify(joinMessage));
 
+      socket.onerror = () => {
+        document.getElementById("status").innerText = "❌ Erreur WebSocket";
+      };
+
+      socket.onclose = () => {
+        document.getElementById("status").innerText = "🔌 Déconnecté, recharge la page";
+        joined = false;
+      };
+    } else {
       const message = {
         cmd: "chat",
         nick: nick,
@@ -114,33 +133,13 @@ function sendMessage() {
       };
       socket.send(JSON.stringify(message));
       document.getElementById("text").value = "";
-      joined = true;
-    };
-
-    socket.onerror = () => {
-      document.getElementById("status").innerText = "❌ Erreur WebSocket";
-    };
-
-    socket.onclose = () => {
-      document.getElementById("status").innerText = "🔌 Déconnecté, recharge la page";
-      joined = false;
-    };
-  } else {
-    const message = {
-      cmd: "chat",
-      nick: nick,
-      text: text
-    };
-    socket.send(JSON.stringify(message));
-    document.getElementById("text").value = "";
+    }
   }
-}
-
 </script>
-
 
 </body>
 </html>
+
 
 
 
