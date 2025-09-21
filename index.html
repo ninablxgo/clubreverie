@@ -77,13 +77,13 @@
   let socket = null;
   let isJoined = false;
 
-  // Nettoyage du pseudo
+  // Nettoyage du pseudo avec underscore
   function sanitizeNick(raw) {
     return raw
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // accents
-      .replace(/\s+/g, "-")                            // espaces → tirets
-      .replace(/[^a-zA-Z0-9-_]/g, "")                  // caractères spéciaux
-      .substring(0, 20);                               // max 20 caractères
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprime les accents
+      .replace(/\s+/g, "_")                            // Espace → underscore
+      .replace(/[^a-zA-Z0-9-_]/g, "")                  // Supprime les caractères spéciaux
+      .substring(0, 20);                               // Limite à 20 caractères
   }
 
   function connectSocket(nick, onReady) {
@@ -108,11 +108,7 @@
   }
 
   function sendMessage() {
-    // Correction ici : transforme les espaces en tirets AVANT lecture du champ
-    const nickInput = document.getElementById("nick");
-    nickInput.value = nickInput.value.replace(/\s+/g, '_');
-
-    const rawNick = nickInput.value.trim();
+    const rawNick = document.getElementById("nick").value.trim().replace(/\s+/g, "_");
     const text = document.getElementById("text").value.trim();
 
     if (!rawNick || !text) {
@@ -135,7 +131,7 @@
     }
   }
 
-  // Mise à jour en temps réel du champ pseudo (visuel uniquement)
+  // Met à jour en direct le champ pseudo pour refléter les underscores visuellement
   document.getElementById("nick").addEventListener("input", function () {
     this.value = this.value.replace(/\s+/g, '_');
   });
@@ -143,7 +139,6 @@
 
 </body>
 </html>
-
 
 
 
