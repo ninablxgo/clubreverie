@@ -81,7 +81,7 @@
   let joined = false;
 
   function sendMessage() {
-    const nick = document.getElementById("nick").value.trim();
+    const nick = document.getElementById("nick").value.trim().replace(/\s+/g, '-');
     const text = document.getElementById("text").value.trim();
 
     if (!nick || !text) {
