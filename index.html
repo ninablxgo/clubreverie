@@ -81,8 +81,13 @@
   let joined = false;
 
   function sendMessage() {
-    const nick = document.getElementById("nick").value.trim().replace(/\s+/g, '-');
-    const text = document.getElementById("text").value.trim();
+    const rawNick = document.getElementById("nick").value.trim();
+    const nick = rawNick
+      .normalize("NFD")                // supprime les accents
+      .replace(/[\u0300-\u036f]/g, "") 
+      .replace(/\s+/g, '-')            // remplace les espaces par des tirets
+      .replace(/[^a-zA-Z0-9-_]/g, ''); // supprime tous les caractères spéciaux
+
 
     if (!nick || !text) {
       alert("Remplis ton pseudo et ton message !");
